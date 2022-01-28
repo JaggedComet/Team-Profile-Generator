@@ -1,117 +1,143 @@
-// // Import modules that are needed for the program
-const fs = require("fs");
-const inquirer = require("inquirer");
+// Requiring the Node Modules
+const fs = require('fs'); 
+const inquirer = require('inquirer');
 
-// Employee constructs
-const Employee = require("./lib/Employee");
-const Engineer = require("./lib/Engineer");
-const Intern = require("./lib/Intern");
-const Manager = require("./lib/Manager");
+// Link to the Employee Constructors
+const Manager = require('./lib/Manager');
+const Engineer = require('./lib/Engineer');
+const Intern = require('./lib/Intern'); 
 
-const fullTeam = [];
 
-function startPrompt() {
-    inquirer.prompt([
+// Constant to link to the html page
+const generateHTML = require('./src/generateHTML');
+
+// Final array with all the team data
+const finalArray = []; 
+
+// Prompt for Manager information 
+const addManager = () => {
+    return inquirer.prompt ([
         {
-            type: "input",
-            name: "teamName",
-            message: "What is the name of the team?",
-            default: "Merge Conflict",
+            type: 'input',
+            name: 'name',
+            message: 'Who is the manager of this team?', 
+        },
+        {
+            type: 'input',
+            name: 'id',
+            message: "Please enter the manager's ID.",
+        },
+        {
+            type: 'input',
+            name: 'email',
+            message: "Please enter the manager's email.",
+        },
+        {
+            type: 'input',
+            name: 'officeNumber',
+            message: "Please enter the manager's office number",
         }
-    ]).then(function (data) {
+    // Adding the manager data to the array
+    ]).then(managerData => {
+        const  { name, id, email, officeNumber } = managerData; 
+        const manager = new Manager (name, id, email, officeNumber);
 
-    });
+        finalArray.push(manager); 
+        console.log(manager); 
+    })
 };
 
-function addManager() {
-    inquirer.prompt([
+// Adding employees
+const addEmployee = () => {
+    // Prompts the user to input employee information
+    console.log("Please input Employee information");
+    return inquirer.prompt ([
         {
-            type: "input",
-            name: "name",
-            message: "what is the name of the Manager for this team?"
-            default: "David Luu",
+            type: 'list',
+            name: 'role',
+            message: "Please choose your employee's role",
+            choices: ['Engineer', 'Intern']
         },
         {
-            type: "input",
-            name: "id",
-            message: "What is the Manager's ID?"
-            default: "001",
+            type: 'input',
+            name: 'name',
+            message: "What's the name of the employee?", 
         },
         {
-            type: "input",
-            name: "email",
-            message: "What is the Manager's email?",
-            default: "David@email.com",
+            type: 'input',
+            name: 'id',
+            message: "Please enter the employee's ID.",
+        },
+        {
+            type: 'input',
+            name: 'email',
+            message: "Please enter the employee's email.",
+        },
+        {
+            type: 'input',
+            name: 'github',
+            message: "Please enter the employee's github username.",
+        },
+        {
+            type: 'input',
+            name: 'school',
+            message: "Please enter the intern's school",
+        },
+        {
+            type: 'confirm',
+            name: 'addMoreEmployee',
+            message: 'Would you like to add more team members?',
+            // So they can press anything other than y/n and it'll count as no
+            default: false
         }
-        {
-            type: "input",
-            name: "officeNumber",
-            message: "What is the Manager's office number"
-            default: "101",
-        },
-    ]).then(function (data) {
-
-    });
-};
-
-function addEngineer() {
-    inquirer.prompt([
-        {
-            type: "input",
-            name: "name",
-            message: "What is the Engineer's name?"
-            default: "Marco Flores",
-        },
-        {
-            type: "input",
-            name: "id",
-            message: "What is the Engineer's id?"
-            default: "101",
-        },
-        {
-            type: "input",
-            name: "email",
-            message: "What is the Engineer's email?"
-            default: "Marco@email.com",
+    // Takes the employee data and has if/else statements
+    ]).then(employeeData => {
+        let { name, id, email, role, github, school, addMoreEmployee } = employeeData; 
+        let employee; 
+        // If the role matches "Engineer", then it'll take the name, id, email, github and show it on the console log for "Engineer"
+        if (role === "Engineer") {
+            employee = new Engineer (name, id, email, github);
+            console.log(employee);
+            
+        // If the role matches "Intern", then it'll take the name, id, email, school and show it on the log
+        } else if (role === "Intern") {
+            employee = new Intern (name, id, email, school);
+            console.log(employee);
         }
-        {
-            type: "input",
-            name: "github",
-            message: "What is your Engineer's github?",
-            default: "https://github.com/JaggedComet",
-        },
-    ]).then(function (data) {
+        // Pushes each new Employee to the end of the array
+        finalArray.push(employee); 
 
-    });
+        // If you confirm y on adding more Team members, will add to the array
+        if (addMoreEmployee) {
+            return addEmployee(finalArray); 
+        } else {
+            return finalArray;
+        }
+    })
+
 };
 
-function addIntern() {
-    inquirer.prompt([
-        {
-            type: "input",
-            name: "name",
-            message: "What is the Intern's name?"
-            default: "Giovanni Barranco",
-        },
-        {
-            type: "input",
-            name: "id",
-            message: "What is the Intern's ID?"
-            default: "102",
-        },
-        {
-            type: "input",
-            name: "email",
-            message: "What is the Intern's email?"
-            default: "Gio@email.com",
-        },
-        {
-            type: "input",
-            name: "school",
-            message: "What school is the Intern from?"
-            default: "UCSD",
-        }, 
-    ]).then(function (data) {
 
-    });
-};
+// Constant to write file to an index.html file
+const writeFile = data => {
+    fs.writeFile('./dist/index.html', data, err => {
+        // If there is an error, it will console.log it 
+        if (err) {
+            console.log(err);
+            return;
+        // When finished, console log will prompt you
+        } else {
+            console.log("Your team is finished, please check the index.html in the /dist folder!")
+        }
+    })
+}; 
+
+addManager()
+  .then(addEmployee)
+  .then(finalArray => {
+    return generateHTML(finalArray);
+  }).then(pageHTML => {
+    return writeFile(pageHTML);
+  }).catch(err => {
+ console.log(err);
+  });
